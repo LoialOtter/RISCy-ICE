@@ -28,7 +28,7 @@
 # Package:            SG48
 ###############################################################################
 
-set_io pin_clk 20
+set_io pin_clk  20
 
 set_io pin_miso 17
 set_io pin_cs   16
@@ -36,7 +36,6 @@ set_io pin_mosi 14
 set_io pin_sck  15
 set_io pin_wp   18
 set_io pin_hold 13
-set_io pin_adc_cs 19
 
 set_io pin_usbp 42
 set_io pin_usbn 38

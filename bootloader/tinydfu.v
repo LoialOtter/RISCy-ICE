@@ -54,9 +54,9 @@ SB_RGBA_DRV #(
 ) rgb_drv_inst (
   .RGBLEDEN ( stat_en    ),
   .CURREN   ( stat_en    ),
-  .RGB0PWM  ( stat_r     ),
-  .RGB1PWM  ( stat_g     ),
-  .RGB2PWM  ( stat_b     ),
+  .RGB0PWM  ( stat_b     ),
+  .RGB1PWM  ( stat_r     ),
+  .RGB2PWM  ( stat_g     ),
   .RGB0     ( pin_stat_r ),
   .RGB1     ( pin_stat_g ),
   .RGB2     ( pin_stat_b )

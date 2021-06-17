@@ -42,14 +42,16 @@ module wb_qspi_flash #(
     input wire              wb_cyc_i,
     output reg              wb_ack_o,
 
+    // some blocking signals (for other SPI devices)
+    input wire              spi_blocked,
+    output wire             spi_busy,
+    
     // (Q)SPI interface
     output wire             spi_clk,
     output wire             spi_sel,
     output reg [3:0]        spi_d_out,
     input wire [3:0]        spi_d_in,
-    output reg [3:0]        spi_d_dir,
-    
-    output wire [3:0]       debug
+    output reg [3:0]        spi_d_dir
     );
     
     localparam XFER_STATE_INIT      = 4'h0; /* Reset state */
@@ -69,11 +71,6 @@ module wb_qspi_flash #(
     localparam SPI_READ_COMMAND   = 8'hEB;  /* Quad I/O Read command (1-4-4) */
     localparam SPI_READ_DUMMY_CLOCKS = 8;   /* Cypress S25064L Series - 8 dummy clocks. */
 
-    assign debug = {1'b0,
-                    xfer_state == XFER_STATE_IDLE,
-                    xfer_state == XFER_STATE_WR_ENABLE,
-                    xfer_state == XFER_STATE_INIT};
-                    
     
     localparam SPI_ADDR_BITS = 24;
     localparam WB_ADDR_BITS = SPI_ADDR_BITS-$clog2(DW/8);
@@ -169,7 +166,7 @@ module wb_qspi_flash #(
             end
             XFER_STATE_IDLE : begin
                 // Start a new read command.
-                if (wb_cyc_i && wb_stb_i) begin
+                if (wb_cyc_i && wb_stb_i && !spi_blocked) begin
                     xfer_state <= XFER_STATE_COMMAND;
                     xfer_addr  <= wb_addr_local;
                     xfer_dir   <= 4'b0001;
@@ -230,5 +227,7 @@ module wb_qspi_flash #(
             end
         endcase
     end
+
+    assign spi_busy = xfer_state != XFER_STATE_IDLE;
 
 endmodule

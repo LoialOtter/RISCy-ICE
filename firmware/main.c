@@ -124,33 +124,46 @@ int main(void)
 
     /* Enable interrupts for testing */
     /* Not sure if this is a hardware problem, but BT0 is extremely noisy. */
-    MISC->i_status = 0xF;
-    MISC->i_enable = 0xA;
+    //MISC->i_status = 0xF;
+    //MISC->i_enable = 0xA;
 
-    /* Count the number of animations present. */
-    count = 0;
-    while (check_bootslot(count)) count++;
 
-    /* Return here after an animation exits. */
-    retcode = setjmp(bootjmp);
-    if (retcode != 0) {
-        bios_printf("Animation at slot %d exitied with code=%d\n", slot, retcode);
-        if (retcode == 1) {
-            /* Seek the animation forward. */
-            if (slot < count-1) slot++;
-            else slot = 0;
-        }
-        else {
-            /* Seek the animation backawrd. */
-            if (slot != 0) slot--;
-            else slot = count - 1;
+    MISC->leds[0] = 0;
+    MISC->leds[1] = 128;
+    MISC->leds[3] = 0;
+
+    while(1) {
+        if (count-- < 0) {
+            MISC->leds[1] ^= 128;
+            count = 10000;
         }
     }
 
-    MISC->leds[0] = 0;
-    MISC->leds[1] = 1;
-    MISC->leds[3] = 0;
-
-    /* Load the next animation */
-    bootload(slot);
+    
+    ///* Count the number of animations present. */
+    //count = 0;
+    //while (check_bootslot(count)) count++;
+    //
+    ///* Return here after an animation exits. */
+    //retcode = setjmp(bootjmp);
+    //if (retcode != 0) {
+    //    bios_printf("Animation at slot %d exitied with code=%d\n", slot, retcode);
+    //    if (retcode == 1) {
+    //        /* Seek the animation forward. */
+    //        if (slot < count-1) slot++;
+    //        else slot = 0;
+    //    }
+    //    else {
+    //        /* Seek the animation backawrd. */
+    //        if (slot != 0) slot--;
+    //        else slot = count - 1;
+    //    }
+    //}
+    //
+    //MISC->leds[0] = 0;
+    //MISC->leds[1] = 1;
+    //MISC->leds[3] = 0;
+    //
+    ///* Load the next animation */
+    //bootload(slot);
 }

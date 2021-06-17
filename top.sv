@@ -138,7 +138,7 @@ module top (
     wire clk;
     wire rst;
     localparam CLK_FREQ = 16000000;
-    assign clk = clk_16mhz;
+    assign clk = pin_clk;//clk_16mhz;
     assign rst = reset;
 
     //============================================================
@@ -342,22 +342,22 @@ module top (
       .wb_cyc_i   ( wb_misc_cyc ),
       .wb_stb_i   ( wb_misc_stb ),
   
-      .leds       ( ),//{ stat_b, stat_g, stat_r } ),
+      .leds       ( { stat_b, stat_g, stat_r } ),
       .buttons    ( buttons ),
       .irq        ( button_irq )
     );
 
-    logic [31:0] led_counter;
-    initial led_counter = 0;
-    always @(posedge clk) begin
-        if (led_counter) led_counter <= led_counter - 1;
-        else             led_counter <= 16000000;
-    end
-    always_comb begin
-        stat_b = led_counter < 10000;
-        stat_g = 0;
-        stat_r = led_counter < 10000;
-    end
+    //logic [31:0] led_counter;
+    //initial led_counter = 0;
+    //always @(posedge clk) begin
+    //    if (led_counter) led_counter <= led_counter - 1;
+    //    else             led_counter <= 16000000;
+    //end
+    //always_comb begin
+    //    stat_b = led_counter < 10000;
+    //    stat_g = 0;
+    //    stat_r = led_counter < 10000;
+    //end
     
     
   

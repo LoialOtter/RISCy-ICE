@@ -34,7 +34,8 @@ from glob import glob
 srcdir = os.path.dirname(os.path.abspath(__file__))
 libdir = os.path.join(srcdir, "lib")
 bootdir = os.path.join(srcdir, "bootloader")
-ldsfile = os.path.join(bootdir,'bootrom.lds')
+firmware = os.path.join(srcdir, "firmware")
+ldsfile = os.path.join(firmware,'bootrom.lds')
 
 CFLAGS = ['-Os', '-march=rv32i', '-mabi=ilp32', '-I', bootdir]
 CFLAGS += ['-ffunction-sections', '-fdata-sections', '--specs=nano.specs']
@@ -69,7 +70,7 @@ dfu_usb_srcs += ["usb_dfu_core.v",
 
 boot_srcs = [ os.path.join(bootdir, 'tinydfu.v'), 'pll96mhz.v' ]
 boot_srcs += [ os.path.join(rtl_usb_dir, x) for x in dfu_usb_srcs ] 
-bootrom_srcs = [ os.path.join(bootdir, "bootrom.s") ]
+bootrom_srcs = [ os.path.join(firmware, "bootrom.s") ]
 
 # User Bitstream sources.
 stub_usb_srcs = rtl_usb_srcs

@@ -39,7 +39,7 @@
 .func coldboot
 coldboot:
     la s0, (_stack_start - 64)  # SRAM location of memcpy.
-    la s1, 0x30100000           # Flash location of the boot header.
+    la s1, 0x02100000           # Flash location of the boot header.
 
     # Check if the BIOS boot header is valid.
     lw a1, 0(s1)
@@ -68,33 +68,21 @@ coldboot:
 .func die
 die:
     # Setup the display pointer.
-    la a0, 0x40020004
-    sw a0, -4(a0)
+    la a0, 0x30000000
+    li a1, 0x00FF
+    sw a1, 0(a0)
 
     # Pick a fill color (red, for badness).
-    li s1, 0xF800
+    li s1, 0xFF
     li a1, 0
-0:  # The dislay loop
-    jal  display_fill   # Fill the display.
+0:  # The display loop
+    sw   a1, 0(a0)
     li   s0, 0x200000   # Reset the delay counter.
     xor  a1, a1, s1     # Toggle the color.
 1:  # The delay loop
     beqz s0, 0b         # Redraw if the counter reaches zero.
     addi s0, s0, -1     # Decrement the counter otherwise.
     beqz zero, 1b
-.endfunc
-
-.globl display_fill
-.func
-display_fill:
-    slli a2, a1, 16
-    add  a2, a2, a1
-    addi a3, a0, (32*14*2)
-0:
-    addi a3, a3, -4
-    sw   a2, 0(a3)
-    bgt  a3, a0, 0b
-    ret
 .endfunc
 
 # A minimal memcpy - only accepts aligned pointers.

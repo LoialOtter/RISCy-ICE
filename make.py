@@ -83,7 +83,9 @@ lib_srcs = ["VexRiscv_Min.v",
             "wbcdecoder.v",
             "wbcxbar.v",
             "wbcrouter.v",
-            "wb_qspi_flash.v"]
+            "wb_qspi_flash.v",
+            "wb_usb_serial.v",
+            "wbsram.v"]
 
 sources = glob(os.path.join(srcdir, '*.v'))
 sources += glob(os.path.join(srcdir, '*.sv'))

@@ -61,7 +61,7 @@ module base_system
     localparam WB_MUX_WIDTH  = 4;
 
     localparam XBAR_ADDR_WIDTH = 4;
-    localparam SELECTOR_ADDR_WIDTH = 2;
+    localparam SELECTOR_ADDR_WIDTH = 1;
   
     localparam WB_XADDR_WIDTH = WB_FULL_ADDR_WIDTH - XBAR_ADDR_WIDTH;
     localparam WB_SADDR_WIDTH = WB_XADDR_WIDTH - SELECTOR_ADDR_WIDTH;
@@ -178,10 +178,10 @@ module base_system
       .MUXWIDTH( XBAR_ADDR_WIDTH ),
       .NS(4), // One port for SRAM, boot ROM and PWM LED driver.
       .SLAVE_MUX({
-          { 2'h0 },  // Base address of the boot and data peripherals. 0x00000000
-          { 2'h1 },  // Base address of the SPRAM1 (Program).          0x10000000
-          { 2'h2 },  // Base address of the SPRAM2 (Data).             0x20000000
-          { 2'h3 }   // Base address of the peripherals                0x30000000
+          { 4'h0 },  // Base address of the boot and data peripherals. 0x00000000
+          { 4'h1 },  // Base address of the SPRAM1 (Program).          0x10000000
+          { 4'h2 },  // Base address of the SPRAM2 (Data).             0x20000000
+          { 4'h3 }   // Base address of the peripherals                0x30000000
       })
     ) vexcrossbar (
       .i_clk  ( clk ),
@@ -225,16 +225,6 @@ module base_system
     wire                      wb_bootrom_cyc;
     wire                      wb_bootrom_stb;
   
-    // Instantiate the SRAM.
-    wire [WB_SADDR_WIDTH-1:0] wb_sram_addr;
-    wire [WB_DATA_WIDTH-1:0]  wb_sram_rdata;
-    wire [WB_DATA_WIDTH-1:0]  wb_sram_wdata;
-    wire                      wb_sram_we;
-    wire [WB_SEL_WIDTH-1:0]   wb_sram_sel;
-    wire                      wb_sram_ack;
-    wire                      wb_sram_cyc;
-    wire                      wb_sram_stb;
-
     // SPI Interface
     wire [WB_SADDR_WIDTH-1:0] wb_spi_addr;
     wire [WB_DATA_WIDTH-1:0]  wb_spi_rdata;
@@ -246,14 +236,13 @@ module base_system
     wire                      wb_spi_stb;
     
     wbcrouter#(
-      .AW       ( 28 ),
+      .AW       ( WB_XADDR_WIDTH ),
       .DW       ( WB_DATA_WIDTH ),
       .MUXWIDTH ( SELECTOR_ADDR_WIDTH ),
-      .NS       ( 3 ), // Number of slaves
+      .NS       ( 2 ), // Number of slaves
       .SLAVE_MUX({
-          { 2'h0 },  // Base address of the boot ROM      0x00000000
-          { 2'h1 },  // Base address of the SRAM (stack)  0x01000000
-          { 2'h3 }   // Base address of the SPI flash     0x02000000
+          { 1'h0 },  // Base address of the boot ROM      0x00000000
+          { 1'h1 }   // Base address of the SPI flash     0x02000000
       })
     ) vexrouter (
       .i_clk  ( clk ),
@@ -271,15 +260,15 @@ module base_system
       .o_mdata ( wb_boot_rdata ),
   
       // Crossbar Slave Ports.
-      .o_scyc  ({ wb_bootrom_cyc,   wb_sram_cyc,   wb_spi_cyc    }),
-      .o_sstb  ({ wb_bootrom_stb,   wb_sram_stb,   wb_spi_stb    }),
-      .o_swe   ({ wb_bootrom_we,    wb_sram_we,    wb_spi_we     }),
-      .o_saddr ({ wb_bootrom_addr,  wb_sram_addr,  wb_spi_addr   }),
-      .o_sdata ({ wb_bootrom_wdata, wb_sram_wdata, wb_spi_wdata  }),
-      .o_ssel  ({ wb_bootrom_sel,   wb_sram_sel,   wb_spi_sel    }),
-      .i_sack  ({ wb_bootrom_ack,   wb_sram_ack,   wb_spi_ack    }),
-      .i_serr  ({ 1'b0,             1'b0,          1'b0          }),
-      .i_sdata ({ wb_bootrom_rdata, wb_sram_rdata, wb_spi_rdata  })
+      .o_scyc  ({ wb_bootrom_cyc,   wb_spi_cyc    }),
+      .o_sstb  ({ wb_bootrom_stb,   wb_spi_stb    }),
+      .o_swe   ({ wb_bootrom_we,    wb_spi_we     }),
+      .o_saddr ({ wb_bootrom_addr,  wb_spi_addr   }),
+      .o_sdata ({ wb_bootrom_wdata, wb_spi_wdata  }),
+      .o_ssel  ({ wb_bootrom_sel,   wb_spi_sel    }),
+      .i_sack  ({ wb_bootrom_ack,   wb_spi_ack    }),
+      .i_serr  ({ 1'b0,             1'b0          }),
+      .i_sdata ({ wb_bootrom_rdata, wb_spi_rdata  })
     );
 
   
@@ -302,23 +291,6 @@ module base_system
       .wb_stb_i  ( wb_bootrom_stb   )
     );
   
-    //---------------------------------------------------------------
-    // SRAM
-    wbsram#(
-      .AW(WB_SADDR_WIDTH),
-      .DW(WB_DATA_WIDTH)
-    ) vexsram(
-      .wb_clk_i  ( clk ),
-      .wb_reset_i( rst ),
-      .wb_adr_i  ( wb_sram_addr  ),
-      .wb_dat_i  ( wb_sram_wdata ),
-      .wb_dat_o  ( wb_sram_rdata ),
-      .wb_we_i   ( wb_sram_we    ),
-      .wb_sel_i  ( wb_sram_sel   ),
-      .wb_ack_o  ( wb_sram_ack   ),
-      .wb_cyc_i  ( wb_sram_cyc   ),
-      .wb_stb_i  ( wb_sram_stb   )
-    );
 
     //---------------------------------------------------------------
     // QSPI Flash
@@ -340,12 +312,15 @@ module base_system
       .wb_ack_o ( wb_spi_ack   ),
     
       // (Q)SPI interface
-      .spi_clk   ( spi_clk   ),
-      .spi_sel   ( spi_sel   ),
-      .spi_d_out ( spi_d_out ),
-      .spi_d_in  ( spi_d_in  ),
-      .spi_d_dir ( spi_d_dir )
+      .spi_blocked ( spi_blocked ),
+      .spi_busy    ( spi_busy    ),
+      .spi_clk     ( spi_clk     ),
+      .spi_sel     ( spi_sel     ),
+      .spi_d_out   ( spi_d_out   ),
+      .spi_d_in    ( spi_d_in    ),
+      .spi_d_dir   ( spi_d_dir   )
     );
+
   
     //---------------------------------------------------------------
     // SPRAM

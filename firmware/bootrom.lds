@@ -27,7 +27,8 @@
 MEMORY
 {
     BOOT (rwx) : ORIGIN = 0x00000000, LENGTH = 4096
-    SRAM (rwx) : ORIGIN = 0x01000000, LENGTH = 4096
+/*    SRAM (rwx) : ORIGIN = 0x01000000, LENGTH = 4096 */
+    SRAM (rwx) : ORIGIN = 0x10000000, LENGTH = 128*1024
 }
 
 ENTRY(coldboot)

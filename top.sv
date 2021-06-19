@@ -176,6 +176,8 @@ module top (
     wire [3:0]                 spi_d_out;
     wire [3:0]                 spi_d_in;
     wire [3:0]                 spi_d_dir;
+
+    assign spi_blocked = '0;
     
     base_system 
      #(
